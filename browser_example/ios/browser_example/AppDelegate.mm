@@ -2,6 +2,7 @@
 
 #import <React/RCTBundleURLProvider.h>
 #import <RNBranch/RNBranch.h>
+#import <mParticle_Apple_SDK/mParticle.h>
 
 
 @implementation AppDelegate
@@ -15,6 +16,12 @@
 
   [RNBranch enableLogging];
   [RNBranch initSessionWithLaunchOptions:launchOptions isReferrable:YES];
+
+   MParticleOptions *options = [MParticleOptions optionsWithKey:@"MPARTICLE_KEYS"
+                                                           secret:@"MPARTICLE_SECRET"];
+   options.environment = MPEnvironmentDevelopment;
+   [[MParticle sharedInstance] startWithOptions:options];
+
 
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }

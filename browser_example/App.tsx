@@ -15,6 +15,9 @@ import {
   SafeAreaView,
 } from 'react-native';
 
+import {NavigationContainer} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
+
 import branch, {BranchEvent, BranchParams} from 'react-native-branch';
 
 import WebView from 'react-native-webview';
@@ -26,7 +29,9 @@ interface MyState {
   params: BranchParams | undefined;
 }
 
-class App extends React.Component<any, MyState> {
+const Stack = createStackNavigator();
+
+class HomeScreen extends React.Component<any, MyState> {
   buo: any;
   _unsubscribeFromBranch: any;
 
@@ -68,6 +73,8 @@ class App extends React.Component<any, MyState> {
         }
 
         if (params) {
+          console.log([params])
+
           if (!params['+clicked_branch_link']) {
             if (params['+non_branch_link']) {
               this.setState({
@@ -92,6 +99,12 @@ class App extends React.Component<any, MyState> {
             image: JSON.stringify(image),
             params: params,
           });
+
+          if (params.$deeplink_path === 'main') {
+            this.props.navigation.navigate('Main');
+          } else if (params.$deeplink_path === 'other') {
+            this.props.navigation.navigate('Other');
+          }
         }
       },
     });
@@ -113,8 +126,21 @@ class App extends React.Component<any, MyState> {
   }
 
   render() {
+
     return (
       <SafeAreaView style={styles.container}>
+        <View style={styles.navbar}>
+         <TouchableHighlight
+            onPress={() => this.props.navigation.navigate('Main')}
+            style={styles.navButton}>
+            <Text style={styles.buttonText}>Main</Text>
+          </TouchableHighlight>
+          <TouchableHighlight
+            onPress={() => this.props.navigation.navigate('Other')}
+            style={styles.navButton}>
+            <Text style={styles.buttonText}>Other</Text>
+          </TouchableHighlight>
+        </View>
         <View style={styles.container}>
           <View>
             <Text style={styles.titleText}>Referring URL</Text>
@@ -143,6 +169,11 @@ class App extends React.Component<any, MyState> {
             style={styles.button}>
             <Text style={styles.buttonText}>Share</Text>
           </TouchableHighlight>
+          <TouchableHighlight
+            onPress={() => console.log(this.props)}
+            style={styles.button}>
+            <Text style={styles.buttonText}>Test</Text>
+          </TouchableHighlight>
         </View>
       </SafeAreaView>
     );
@@ -169,8 +200,8 @@ class App extends React.Component<any, MyState> {
     }
 
     this.buo = await branch.createBranchUniversalObject('item/12345', {
-      canonicalUrl: `${this.state.url}`,
-      title: this.state.title,
+      canonicalUrl: 'https://www.example.com/other',
+      title: 'Example Title'
     });
 
     let params = {
@@ -212,6 +243,7 @@ class App extends React.Component<any, MyState> {
     let controlParams = {
       $desktop_url: 'http://example.com/home',
       $ios_url: 'http://example.com/ios',
+      $deeplink_path: 'other'
     };
 
     let {channel, completed, error} = await this.buo.showShareSheet(
@@ -226,6 +258,40 @@ class App extends React.Component<any, MyState> {
     }
 
     console.log('Share to ' + channel + ' completed: ' + completed);
+  }
+}
+
+class MainScreen extends React.Component<any, any> {
+  render() {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Main Screen</Text>
+      </View>
+    );
+  }
+}
+
+class OtherScreen extends React.Component<any, any> {
+  render() {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Other Screen</Text>
+      </View>
+    );
+  }
+}
+
+class App extends React.Component<any, any> {
+  render() {
+    return (
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Home">
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Main" component={MainScreen} />
+          <Stack.Screen name="Other" component={OtherScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    );
   }
 }
 
@@ -260,6 +326,7 @@ const styles = StyleSheet.create({
     flex: 0.15,
     justifyContent: 'center',
     borderRadius: 10,
+    marginTop: 5
   },
   buttonText: {
     color: '#2266aa',
@@ -275,4 +342,24 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 10,
   },
+  navbar: {
+    height: 50,
+    marginVertical: 10,
+    borderWidth: 1,
+    padding: 10,
+    borderColor: 'black',
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    alignItems: 'center'
+  },
+  navButton: {
+    backgroundColor: '#cceeee',
+    borderColor: '#2266aa',
+    height: 40,
+    width: '40%',
+    justifyContent: 'center',
+    borderRadius: 10,
+  }
 });
